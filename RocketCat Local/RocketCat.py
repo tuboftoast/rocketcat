@@ -458,9 +458,43 @@ class EditScreen(Screen):
         self.xthroat = xthroat
         self.xexit = xexit
 
-        #text inputs 
+        #text inputs
+
+        self.input_gamma = (TextInput(multiline=False,size_hint=(0.4,0.1),pos_hint={'center_x':0.2,'center_y':0.95},hint_text='Enter Gamma Value (Cv/Cp)'))
+        self.edit_layout.add_widget(self.input_gamma)
+        self.input_R = (TextInput(multiline=False,size_hint=(0.4,0.1),pos_hint={'center_x':0.2,'center_y':0.85},hint_text='Enter Specific Gas Constant (J/kg*k)'))
+        self.edit_layout.add_widget(self.input_R)
+        self.input_P0 = (TextInput(multiline=False,size_hint=(0.4,0.1),pos_hint={'center_x':0.2,'center_y':0.75},hint_text='Enter Combustion Chamber Pressure (Pa)'))
+        self.edit_layout.add_widget(self.input_P0)
+        self.input_T0 = (TextInput(multiline=False,size_hint=(0.4,0.1),pos_hint={'center_x':0.2,'center_y':0.65},hint_text='Enter Combustion Chamber Temperature (K)'))
+        self.edit_layout.add_widget(self.input_T0)
         self.input_Mdot = (TextInput(multiline=False,size_hint=(0.4,0.1),pos_hint={'center_x':0.5,'center_y':0.3},hint_text='Enter Mass Flow Rate (kg/sec)'))
         self.edit_layout.add_widget(self.input_Mdot)
+
+        self.input_Din = (TextInput(multiline=False,size_hint=(0.4,0.1),pos_hint={'center_x':0.8,'center_y':0.95},hint_text='Enter inlet diameter (m)'))
+        self.edit_layout.add_widget(self.input_Din)
+        self.input_Dthroat = (TextInput(multiline=False,size_hint=(0.4,0.1),pos_hint={'center_x':0.8,'center_y':0.85},hint_text='Enter throat diameter (m)'))
+        self.edit_layout.add_widget(self.input_Dthroat)
+        self.input_Dexit = (TextInput(multiline=False,size_hint=(0.4,0.1),pos_hint={'center_x':0.8,'center_y':0.75},hint_text='Enter exit diameter (m)'))
+        self.edit_layout.add_widget(self.input_Dexit)
+        self.input_xthroat = (TextInput(multiline=False,size_hint=(0.4,0.1),pos_hint={'center_x':0.8,'center_y':0.65},hint_text='Enter throat distance (m)'))
+        self.edit_layout.add_widget(self.input_xthroat)
+        self.input_xexit = (TextInput(multiline=False,size_hint=(0.4,0.1),pos_hint={'center_x':0.8,'center_y':0.55},hint_text='Enter exit distance (m)'))
+        self.edit_layout.add_widget(self.input_xexit)
+
+        self.input_gamma.text     = str(self.df.iloc[0,0])
+        self.input_R.text         = str(self.df.iloc[0,1])
+        self.input_P0.text        = str(self.df.iloc[0,2])
+        self.input_T0.text        = str(self.df.iloc[0,3])
+        self.input_Mdot.text      = str(self.df.iloc[0,4])
+        self.input_Din.text       = str(self.df.iloc[0,5])
+        self.input_Dthroat.text   = str(self.df.iloc[0,6])
+        self.input_Dexit.text     = str(self.df.iloc[0,7])
+        self.input_xthroat.text   = str(self.df.iloc[0,8])
+        self.input_xexit.text     = str(self.df.iloc[0,9])
+
+
+        
 
         #configuration name label
         config_name_label = Label(text=config_name,size_hint=(0.3,0.1),pos_hint={'center_x':0.9,'center_y':0.95})
@@ -476,7 +510,17 @@ class EditScreen(Screen):
 
     def on_submit(self,instance):
 
-        self.df.iloc[0,4] = (self.input_Mdot.text)
+        self.df.iloc[0,0] = float(self.input_gamma.text)
+        self.df.iloc[0,1] = float(self.input_R.text)
+        self.df.iloc[0,2] = float(self.input_P0.text)
+        self.df.iloc[0,3] = float(self.input_T0.text)
+        self.df.iloc[0,4] = float(self.input_Mdot.text)
+        self.df.iloc[0,5] = float(self.input_Din.text)
+        self.df.iloc[0,6] = float(self.input_Dthroat.text)
+        self.df.iloc[0,7] = float(self.input_Dexit.text)
+        self.df.iloc[0,8] = float(self.input_xthroat.text)
+        self.df.iloc[0,9] = float(self.input_xexit.text)
+        
         self.df.to_csv(self.file_name,index=False)
         
     def back_to_config(self,instance):
