@@ -12,12 +12,12 @@ import math
 import pandas as pd
 import csv
 import os
-import RocketFunctions2
-from RocketFunctions2 import nozzle_geometry
+import RocketFunctions
+from RocketFunctions import nozzle_geometry
 
 
 # global variable for folder path, make sure there is a \\ at the end of it
-Folder_Path = "C:\\Users\\joesb\\CSVFiles\\"
+Folder_Path = "C:\\Users\\joesb\\CSVFiles"
 
 #Configuration Class
 class Config:
@@ -29,7 +29,7 @@ class Config:
 
     def process_data(self):
         
-        input_params = self.input_params
+        input_params = self.input_paramsk
         input_name = self.input_name
 
         #Creates CSV file that stores data into a file.
@@ -48,7 +48,7 @@ class CSVWriter:
         self.input_R = self.input_params[1]
         self.input_P0 = self.input_params[2]
         self.input_T0 = self.input_params[3]
-        self.input_Mdot = self.input_params[4]
+        self.input_Rho0 = self.input_params[4]
         self.input_Din = self.input_params[5]
         self.input_Dthroat = self.input_params[6]
         self.input_Dexit = self.input_params[7]
@@ -57,7 +57,7 @@ class CSVWriter:
         self.input_name = self.input_name
  
 
-        data = {'Gamma':[self.input_gamma],'R':[self.input_R],'P0':[self.input_P0],'T0':[self.input_T0],'Mdot':[self.input_Mdot],'Din':[self.input_Din],'Dthroat':[self.input_Dthroat],'Dexit':[self.input_Dexit],'xthroat':[self.input_xthroat],'xexit':[self.input_xexit],'name':[self.input_name]}
+        data = {'Gamma':[self.input_gamma],'R':[self.input_R],'P0':[self.input_P0],'T0':[self.input_T0],'Rho0':[self.input_Rho0],'Din':[self.input_Din],'Dthroat':[self.input_Dthroat],'Dexit':[self.input_Dexit],'xthroat':[self.input_xthroat],'xexit':[self.input_xexit],'name':[self.input_name]}
         df = pd.DataFrame(data)
 
         #File path
@@ -78,9 +78,11 @@ class ConfigManager:
         config_list = os.listdir(folder_path)
         self.config_list = config_list
 
+        print(config_list)
+
         return config_list
 
-#%%
+
 #Home Screen
 class HomeScreen(Screen):
 
@@ -91,9 +93,6 @@ class HomeScreen(Screen):
         home_layout = FloatLayout()
         self.home_layout = home_layout
         self.add_widget(home_layout)
-
-        bg = Image(source='background.png', allow_stretch=True, keep_ratio=False)
-        home_layout.add_widget(bg)
 
         #Nav Buttons
         input_button = Button(text='Input',on_press=self.switch_to_second,size_hint=(0.3,0.1),pos_hint={'center_x':0.1,'center_y':0.05})
@@ -113,7 +112,6 @@ class HomeScreen(Screen):
     def switch_to_second(self, instance):
         self.manager.current = 'second'
 
-#%%
 #Input Screen
 class InputScreen(Screen):
     def __init__(self, **kwargs):
@@ -124,8 +122,8 @@ class InputScreen(Screen):
         self.input_layout = input_layout
         self.add_widget(input_layout)
 
-        bg = Image(source='background.png', allow_stretch=True, keep_ratio=False)
-        input_layout.add_widget(bg)
+        #bg_image = Image(source='bgimage.png',allow_stretch=True,keep_ratio=False)
+        #input_layout.add_widget(bg_image)
 
         self.input_gamma = (TextInput(multiline=False,size_hint=(0.4,0.1),pos_hint={'center_x':0.2,'center_y':0.95},hint_text='Enter Gamma Value (Cv/Cp)'))
         input_layout.add_widget(self.input_gamma)
@@ -135,8 +133,6 @@ class InputScreen(Screen):
         input_layout.add_widget(self.input_P0)
         self.input_T0 = (TextInput(multiline=False,size_hint=(0.4,0.1),pos_hint={'center_x':0.2,'center_y':0.65},hint_text='Enter Combustion Chamber Temperature (K)'))
         input_layout.add_widget(self.input_T0)
-        self.input_Mdot = (TextInput(multiline=False,size_hint=(0.4,0.1),pos_hint={'center_x':0.5,'center_y':0.3},hint_text='Enter Mass Flow Rate (kg/sec)'))
-        input_layout.add_widget(self.input_Mdot)
 
         self.input_Din = (TextInput(multiline=False,size_hint=(0.4,0.1),pos_hint={'center_x':0.8,'center_y':0.95},hint_text='Enter inlet diameter (m)'))
         input_layout.add_widget(self.input_Din)
@@ -148,9 +144,6 @@ class InputScreen(Screen):
         input_layout.add_widget(self.input_xthroat)
         self.input_xexit = (TextInput(multiline=False,size_hint=(0.4,0.1),pos_hint={'center_x':0.8,'center_y':0.55},hint_text='Enter exit distance (m)'))
         input_layout.add_widget(self.input_xexit)
-
-        warning_label = Label(text='PARAMETERS MUST YIELD MACH 1 AT THROAT!!!!',size_hint=(0.4,0.1),pos_hint={'center_x':0.5,'center_y':0.4})
-        input_layout.add_widget(warning_label)
 
 
         self.input_name = (TextInput(multiline=False,size_hint=(0.4,0.1),pos_hint={'center_x':0.2,'center_y':0.55},hint_text='Enter Config. Name'))
@@ -173,7 +166,7 @@ class InputScreen(Screen):
         input_params[1] = float(self.input_R.text)
         input_params[2] = float(self.input_P0.text)
         input_params[3] = float(self.input_T0.text)
-        input_params[4] = float(self.input_Mdot.text)
+        input_params[4] = (input_params[1] * input_params[3]) / input_params[2] #DENSITY (kg/m^3)
         input_params[5] = float(self.input_Din.text)
         input_params[6] = float(self.input_Dthroat.text)
         input_params[7] = float(self.input_Dexit.text)
@@ -187,7 +180,7 @@ class InputScreen(Screen):
     def switch_to_home(self, instance):
         self.manager.current = 'home' 
 
-#%% C O N F I G U R A T I O N S
+
 #Configurations Screen
 class ConfigScreen(Screen):
     def __init__(self, **kwargs):
@@ -198,12 +191,12 @@ class ConfigScreen(Screen):
         self.config_layout = config_layout
         self.add_widget(config_layout)
 
-        bg = Image(source='background.png', allow_stretch=True, keep_ratio=False)
-        config_layout.add_widget(bg)
-
         config_list_layout = FloatLayout()
         self.config_list_layout = config_list_layout
         self.add_widget(config_list_layout)
+
+        #bg_image = Image(source='bgimage.png',allow_stretch=True,keep_ratio=False)
+        #config_layout.add_widget(bg_image)
 
         self.home_button1 = Button(text='Home',on_press=self.switch_to_home,size_hint=(0.3,0.1),pos_hint={'center_x':0.1,'center_y':0.05})
         config_layout.add_widget(self.home_button1)
@@ -229,6 +222,8 @@ class ConfigScreen(Screen):
 
         for config in config_list:
             
+            #self.remove_widget(equation_list_layout)
+            
             button_name = f"button_{button_num}"
             button_name_indexed = config_list[index]
 
@@ -238,6 +233,7 @@ class ConfigScreen(Screen):
 
             config_list_layout.add_widget(button_name)
 
+            print(file_name)
 
             #looping variables
             button_num += 1
@@ -248,9 +244,12 @@ class ConfigScreen(Screen):
         self.remove_widget(config_list_layout)
         self.add_widget(config_list_layout)
 
+
+
     def open_file(self,file_name):
 
         df = pd.read_csv(file_name)
+        print(file_name)
 
         #Calls for the creation of the note screen page passed with the desired file name
         config_page = ConfigPage(file_name=file_name, name='equation')
@@ -271,6 +270,10 @@ class ConfigScreen(Screen):
         self.manager.current = 'home' 
 
 
+
+
+
+
 #individual configuration screen
 class ConfigPage(Screen):
     def __init__(self, file_name='', **kwargs):
@@ -280,9 +283,6 @@ class ConfigPage(Screen):
 
         self.config_page_layout = config_page_layout
 
-        bg = Image(source='background.png', allow_stretch=True, keep_ratio=False)
-        config_page_layout.add_widget(bg)
-
     def create_config_page(self,file_name):
 
         df = pd.read_csv(file_name)
@@ -291,7 +291,7 @@ class ConfigPage(Screen):
         R = float(df.iloc[0,1])
         P0 = float(df.iloc[0,2])
         T0 = float(df.iloc[0,3])
-        Mdot = float(df.iloc[0,4])
+        Rho0 = float(df.iloc[0,4])
         Din = float(df.iloc[0,5])
         Dthroat = float(df.iloc[0,6])
         Dexit = float(df.iloc[0,7])
@@ -303,7 +303,7 @@ class ConfigPage(Screen):
         self.R = R
         self.P0 = P0
         self.T0 = T0
-        self.Mdot = Mdot
+        self.Rho0 = Rho0
         self.Din = Din
         self.Dthroat = Dthroat
         self.Dexit = Dexit
@@ -326,8 +326,8 @@ class ConfigPage(Screen):
         T0_label = Label(text='T0: '+str(T0),size_hint=(0.3,0.1),pos_hint={'center_x':0.9,'center_y':0.75})
         self.config_page_layout.add_widget(T0_label)
 
-        Mdot_label = Label(text='Mdot: '+str(Mdot),size_hint=(0.3,0.1),pos_hint={'center_x':0.9,'center_y':0.70})
-        self.config_page_layout.add_widget(Mdot_label)
+        Rho0_label = Label(text='Rho0: '+str(Rho0),size_hint=(0.3,0.1),pos_hint={'center_x':0.9,'center_y':0.70})
+        self.config_page_layout.add_widget(Rho0_label)
 
         Din_label = Label(text='Din: '+str(Din),size_hint=(0.3,0.1),pos_hint={'center_x':0.9,'center_y':0.65})
         self.config_page_layout.add_widget(Din_label)
@@ -348,21 +348,17 @@ class ConfigPage(Screen):
         back_to_config_screen_button = Button(text='Back to Configurations',on_press = self.back_to_notescreen,size_hint=(0.3,0.1),pos_hint={'center_x':0.1,'center_y':0.05})
         self.config_page_layout.add_widget(back_to_config_screen_button)
 
-        #create edit page button
-        edit_button = Button(text='Edit Configuration',on_press = lambda instance, file=file_name: self.open_edit(file_name), size_hint=(0.3,0.1),pos_hint={'center_x':0.5,'center_y':0.5})
-        self.config_page_layout.add_widget(edit_button)
-
         x = np.linspace(0, xexit, 200)
         nozzle_geo_button = Button(text='Display Geometry',on_press = lambda instance: self.display_geo(x,self.xthroat,self.xexit,self.Din,self.Dexit,self.Dthroat),size_hint=(0.3,0.1),pos_hint={'center_x':0.1,'center_y':0.7})
         self.config_page_layout.add_widget(nozzle_geo_button)
 
-        mach_plot_button = Button(text='Display Mach Number Plot',on_press = lambda instance: self.display_mach(x,xthroat,xexit,Din,Dexit,Dthroat,gamma,Mdot,P0,T0,R),size_hint=(0.3,0.1),pos_hint={'center_x':0.1,'center_y':0.5})
+        mach_plot_button = Button(text='Display Mach Number Plot',on_press = lambda instance: self.display_mach(x,xthroat,xexit,Din,Dexit,Dthroat),size_hint=(0.3,0.1),pos_hint={'center_x':0.1,'center_y':0.5})
         self.config_page_layout.add_widget(mach_plot_button)
 
 
     def display_geo(self,x,xthroat,xexit,Din,Dexit,Dthroat):
 
-        nozzle_rad = RocketFunctions2.nozzle_geometry(x,xthroat,xexit,Din,Dexit,Dthroat)
+        nozzle_rad = RocketFunctions.nozzle_geometry(x,xthroat,xexit,Din,Dexit,Dthroat)
 
         plt.figure(1,figsize=(12, 6))
         plt.plot(x, nozzle_rad, 'k-', linewidth=2)  # Top boundary
@@ -370,14 +366,13 @@ class ConfigPage(Screen):
         plt.xlabel("Axial Position (m)")
         plt.ylabel("Radial Position (m)")
         plt.title('Mach Number Plot')
-        plt.grid()
         plt.show()
 
-    def display_mach(self,x,xthroat,xexit,Din,Dexit,Dthroat,gamma,Mdot,P0,T0,R):
+    def display_mach(self,x,xthroat,xexit,Din,Dexit,Dthroat):
 
-        nozzle_rad = RocketFunctions2.nozzle_geometry(x,xthroat,xexit,Din,Dexit,Dthroat)
-        mach_vec = RocketFunctions2.Mach_Vector(RocketFunctions2.Mach_Equation,gamma,nozzle_rad,x,xthroat,Mdot,P0,T0,R)
-        
+        nozzle_rad = RocketFunctions.nozzle_geometry(x,xthroat,xexit,Din,Dexit,Dthroat)
+
+        mach_vec = RocketFunctions.Mach_Vector(RocketFunctions.AM_Converging_Function,RocketFunctions.AM_Diverging_Function,self.gamma,nozzle_rad,x,xthroat,Dthroat)
 
         plt.figure(1,figsize=(12, 6))
         plt.plot(x, nozzle_rad, 'k-', linewidth=2)  # Top boundary
@@ -393,6 +388,7 @@ class ConfigPage(Screen):
         upper_bound = nozzle_rad  # Upper boundary of the nozzle
         lower_bound = -nozzle_rad  # Lower boundary of the nozzle for 
 
+        #Had to look up how to do this stuff!!!
         mask = (Y > upper_bound[np.newaxis, :]) | (Y < lower_bound[np.newaxis, :]) #mask for the plot, in order to exclude the values above and below the nozzle
         Mach_Plot = np.tile(mach_vec, (len(y), 1))  # Create a 2D Mach number array
         Mach_Plot[mask] = np.nan  # Set values outside the nozzle to NaN
@@ -408,167 +404,12 @@ class ConfigPage(Screen):
         ConfigManager(self).obtain_config_list()
         ConfigScreen().update_config_list(Folder_Path)
 
-        #removes configuration notescreen
+        #removes equation notescreen
         self.manager.remove_widget(self)
 
-    def open_edit(self,file_name):
-
-        #Calls for the creation of the edit page passed with the desired file name
-        edit_page = EditScreen(file_name=file_name, name='edit')
-        edit_page.create_edit_page(file_name)
-        self.manager.add_widget(edit_page)
-
-        #ABSOLUTE NECESITY FOR PASSING FILE_NAME!!!!!!!
-        edit_page = EditScreen(file_name)
-        edit_page.create_edit_page(file_name)
-        #EXTREMELY IMPORTANT FOR PASSING NAME!!!!! DONT FUCK WITH!!!!
-
-        self.manager.current = 'edit'
-
-        self.manager.remove_widget(self)
-
-        return file_name
-
-
-
-#Edit Screen
-class EditScreen(Screen):
-    def __init__(self, file_name='', **kwargs):
-        super(EditScreen, self).__init__(**kwargs)
-
-        #Initializing layout
-        edit_layout = FloatLayout()
-        self.edit_layout = edit_layout
-        self.add_widget(edit_layout)
-
-        bg = Image(source='background.png', allow_stretch=True, keep_ratio=False)
-        edit_layout.add_widget(bg)
-        
-    def create_edit_page(self,file_name):
-
-        df = pd.read_csv(file_name)
-        self.df = df
-        self.file_name = file_name
-        
-        gamma = float(df.iloc[0,0])
-        R = float(df.iloc[0,1])
-        P0 = float(df.iloc[0,2])
-        T0 = float(df.iloc[0,3])
-        Mdot = float(df.iloc[0,4])
-        Din = float(df.iloc[0,5])
-        Dthroat = float(df.iloc[0,6])
-        Dexit = float(df.iloc[0,7])
-        xthroat = float(df.iloc[0,8])
-        xexit = float(df.iloc[0,9])
-        config_name = str(df.iloc[0,10])
-
-        self.gamma = gamma
-        self.R = R
-        self.P0 = P0
-        self.T0 = T0
-        self.Mdot = Mdot
-        self.Din = Din
-        self.Dthroat = Dthroat
-        self.Dexit = Dexit
-        self.xthroat = xthroat
-        self.xexit = xexit
-
-        #text inputs
-
-        self.input_gamma = (TextInput(multiline=False,size_hint=(0.4,0.1),pos_hint={'center_x':0.2,'center_y':0.95},hint_text='Enter Gamma Value (Cv/Cp)'))
-        self.edit_layout.add_widget(self.input_gamma)
-        self.input_R = (TextInput(multiline=False,size_hint=(0.4,0.1),pos_hint={'center_x':0.2,'center_y':0.85},hint_text='Enter Specific Gas Constant (J/kg*k)'))
-        self.edit_layout.add_widget(self.input_R)
-        self.input_P0 = (TextInput(multiline=False,size_hint=(0.4,0.1),pos_hint={'center_x':0.2,'center_y':0.75},hint_text='Enter Combustion Chamber Pressure (Pa)'))
-        self.edit_layout.add_widget(self.input_P0)
-        self.input_T0 = (TextInput(multiline=False,size_hint=(0.4,0.1),pos_hint={'center_x':0.2,'center_y':0.65},hint_text='Enter Combustion Chamber Temperature (K)'))
-        self.edit_layout.add_widget(self.input_T0)
-        self.input_Mdot = (TextInput(multiline=False,size_hint=(0.4,0.1),pos_hint={'center_x':0.5,'center_y':0.3},hint_text='Enter Mass Flow Rate (kg/sec)'))
-        self.edit_layout.add_widget(self.input_Mdot)
-
-        self.input_Din = (TextInput(multiline=False,size_hint=(0.4,0.1),pos_hint={'center_x':0.8,'center_y':0.95},hint_text='Enter inlet diameter (m)'))
-        self.edit_layout.add_widget(self.input_Din)
-        self.input_Dthroat = (TextInput(multiline=False,size_hint=(0.4,0.1),pos_hint={'center_x':0.8,'center_y':0.85},hint_text='Enter throat diameter (m)'))
-        self.edit_layout.add_widget(self.input_Dthroat)
-        self.input_Dexit = (TextInput(multiline=False,size_hint=(0.4,0.1),pos_hint={'center_x':0.8,'center_y':0.75},hint_text='Enter exit diameter (m)'))
-        self.edit_layout.add_widget(self.input_Dexit)
-        self.input_xthroat = (TextInput(multiline=False,size_hint=(0.4,0.1),pos_hint={'center_x':0.8,'center_y':0.65},hint_text='Enter throat distance (m)'))
-        self.edit_layout.add_widget(self.input_xthroat)
-        self.input_xexit = (TextInput(multiline=False,size_hint=(0.4,0.1),pos_hint={'center_x':0.8,'center_y':0.55},hint_text='Enter exit distance (m)'))
-        self.edit_layout.add_widget(self.input_xexit)
-
-        self.input_gamma.text     = str(self.df.iloc[0,0])
-        self.input_R.text         = str(self.df.iloc[0,1])
-        self.input_P0.text        = str(self.df.iloc[0,2])
-        self.input_T0.text        = str(self.df.iloc[0,3])
-        self.input_Mdot.text      = str(self.df.iloc[0,4])
-        self.input_Din.text       = str(self.df.iloc[0,5])
-        self.input_Dthroat.text   = str(self.df.iloc[0,6])
-        self.input_Dexit.text     = str(self.df.iloc[0,7])
-        self.input_xthroat.text   = str(self.df.iloc[0,8])
-        self.input_xexit.text     = str(self.df.iloc[0,9])
-
-
-        
-
-        #configuration name label
-        config_name_label = Label(text=config_name,size_hint=(0.3,0.1),pos_hint={'center_x':0.9,'center_y':0.95})
-        self.edit_layout.add_widget(config_name_label)
-
-        submit_button = Button(text='Save Configuration',on_press=self.on_submit,size_hint=(0.3,0.1),pos_hint={'center_x':0.5,'center_y':0.1})
-        self.submit_button = submit_button
-        self.edit_layout.add_widget(submit_button)
-
-        #back to notescreen button
-        back_to_config_screen_button = Button(text='Back to Configurations',on_press = lambda instance, file=file_name: self.open_file(file_name),size_hint=(0.3,0.1),pos_hint={'center_x':0.1,'center_y':0.05})
-        self.edit_layout.add_widget(back_to_config_screen_button)
-
-    def on_submit(self,instance):
-
-        self.df.iloc[0,0] = float(self.input_gamma.text)
-        self.df.iloc[0,1] = float(self.input_R.text)
-        self.df.iloc[0,2] = float(self.input_P0.text)
-        self.df.iloc[0,3] = float(self.input_T0.text)
-        self.df.iloc[0,4] = float(self.input_Mdot.text)
-        self.df.iloc[0,5] = float(self.input_Din.text)
-        self.df.iloc[0,6] = float(self.input_Dthroat.text)
-        self.df.iloc[0,7] = float(self.input_Dexit.text)
-        self.df.iloc[0,8] = float(self.input_xthroat.text)
-        self.df.iloc[0,9] = float(self.input_xexit.text)
-        
-        self.df.to_csv(self.file_name,index=False)
-        
-    def back_to_config(self,instance):
-
-        #removes edit notescreen
-        self.manager.current='equation'
-        self.manager.remove_widget(self)
-
-    def open_file(self,file_name):
-
-        df = pd.read_csv(file_name)
-
-        #Calls for the creation of the note screen page passed with the desired file name
-        config_page = ConfigPage(file_name=file_name, name='equation')
-        config_page.create_config_page(file_name)
-        self.manager.add_widget(config_page)
-
-        #ABSOLUTE NECESITY FOR PASSING FILE_NAME!!!!!!!
-        config_page = ConfigPage(file_name)
-        config_page.create_config_page(file_name)
-        #EXTREMELY IMPORTANT FOR PASSING NAME!!!!! DONT FUCK WITH!!!!
-
-        self.manager.current = 'equation'
-
-        self.manager.remove_widget(self)
-
-        return file_name
-       
-
-#%%
 
 #App Class
-class RocketCat(App):
+class MERocketApp(App):
     def build(self):
 
         screen_manager = ScreenManager(transition = NoTransition()) 
@@ -586,4 +427,4 @@ class RocketCat(App):
 
 #Run Program
 if __name__ == '__main__':
-    RocketCat().run()
+    MERocketApp().run()
