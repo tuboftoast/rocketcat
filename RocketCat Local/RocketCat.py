@@ -13,7 +13,7 @@ import pandas as pd
 import csv
 import os
 import RocketFunctions2
-from RocketFunctions2 import nozzle_geometry
+
 
 
 # global variable for folder path, make sure there is a \\ at the end of it
@@ -291,6 +291,7 @@ class ConfigPage(Screen):
         R = float(df.iloc[0,1])
         P0 = float(df.iloc[0,2])
         T0 = float(df.iloc[0,3])
+        Rho0 = float(P0/(T0*R))
         Mdot = float(df.iloc[0,4])
         Din = float(df.iloc[0,5])
         Dthroat = float(df.iloc[0,6])
@@ -303,6 +304,7 @@ class ConfigPage(Screen):
         self.R = R
         self.P0 = P0
         self.T0 = T0
+        self.Rho0 = Rho0
         self.Mdot = Mdot
         self.Din = Din
         self.Dthroat = Dthroat
@@ -356,8 +358,10 @@ class ConfigPage(Screen):
         nozzle_geo_button = Button(text='Display Geometry',on_press = lambda instance: self.display_geo(x,self.xthroat,self.xexit,self.Din,self.Dexit,self.Dthroat),size_hint=(0.3,0.1),pos_hint={'center_x':0.1,'center_y':0.7})
         self.config_page_layout.add_widget(nozzle_geo_button)
 
-        mach_plot_button = Button(text='Display Mach Number Plot',on_press = lambda instance: self.display_mach(x,xthroat,xexit,Din,Dexit,Dthroat,gamma,Mdot,P0,T0,R),size_hint=(0.3,0.1),pos_hint={'center_x':0.1,'center_y':0.5})
+        mach_plot_button = Button(text='Display Mach Number Plot',on_press = lambda instance: self.display_mach(x,xthroat,xexit,Din,Dexit,Dthroat,gamma,Mdot,P0,T0,R,Rho0),size_hint=(0.3,0.1),pos_hint={'center_x':0.1,'center_y':0.5})
         self.config_page_layout.add_widget(mach_plot_button)
+
+        flow_properties = self.calculate_flow_properties(x,xthroat,xexit,Din,Dexit,Dthroat,gamma,Mdot,P0,T0,R,Rho0)
 
 
     def display_geo(self,x,xthroat,xexit,Din,Dexit,Dthroat):
@@ -373,11 +377,10 @@ class ConfigPage(Screen):
         plt.grid()
         plt.show()
 
-    def display_mach(self,x,xthroat,xexit,Din,Dexit,Dthroat,gamma,Mdot,P0,T0,R):
+    def display_mach(self,x,xthroat,xexit,Din,Dexit,Dthroat,gamma,Mdot,P0,T0,R,Rho0):
 
         nozzle_rad = RocketFunctions2.nozzle_geometry(x,xthroat,xexit,Din,Dexit,Dthroat)
         mach_vec = RocketFunctions2.Mach_Vector(RocketFunctions2.Mach_Equation,gamma,nozzle_rad,x,xthroat,Mdot,P0,T0,R)
-        
 
         plt.figure(1,figsize=(12, 6))
         plt.plot(x, nozzle_rad, 'k-', linewidth=2)  # Top boundary
@@ -401,6 +404,25 @@ class ConfigPage(Screen):
 
         plt.grid()
         plt.show()
+
+    #CALCULATE FLOW PROPERTIES
+    def calculate_flow_properties(self,x,xthroat,xexit,Din,Dexit,Dthroat,gamma,Mdot,P0,T0,R,Rho0):
+
+        nozzle_rad = RocketFunctions2.nozzle_geometry(x,xthroat,xexit,Din,Dexit,Dthroat)
+        mach_vec = RocketFunctions2.Mach_Vector(RocketFunctions2.Mach_Equation,gamma,nozzle_rad,x,xthroat,Mdot,P0,T0,R)
+        flow_properties = RocketFunctions2.TPRhoV(mach_vec,T0,P0,Rho0,gamma,R,nozzle_rad,Mdot)
+        mach_num = flow_properties[0,:]
+        temperature = flow_properties[1,:]
+        pressure = flow_properties[2,:]
+        density = flow_properties[3,:]
+        velocity = flow_properties[4,:]
+
+        print("Mach Number: ",mach_num)
+        print("Temperature: ",temperature)
+        print("Pressure: ",pressure)
+        print("Density: ",density)
+        print("Velocity: ",velocity)
+
 
     def back_to_notescreen(self,instance):
 
