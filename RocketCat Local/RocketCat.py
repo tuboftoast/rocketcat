@@ -61,7 +61,7 @@ class CSVWriter:
         df = pd.DataFrame(data)
 
         #File path
-        file_path = Folder_Path + self.input_name
+        file_path = Folder_Path + self.input_name + ".csv"
 
         df.to_csv(file_path,index=False)
 
@@ -496,7 +496,6 @@ class EditScreen(Screen):
         self.xexit = xexit
 
         #text inputs
-
         self.input_gamma = (TextInput(multiline=False,size_hint=(0.4,0.1),pos_hint={'center_x':0.2,'center_y':0.95},hint_text='Enter Gamma Value (Cv/Cp)'))
         self.edit_layout.add_widget(self.input_gamma)
         self.input_R = (TextInput(multiline=False,size_hint=(0.4,0.1),pos_hint={'center_x':0.2,'center_y':0.85},hint_text='Enter Specific Gas Constant (J/kg*k)'))
