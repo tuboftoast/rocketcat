@@ -5,6 +5,7 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.screenmanager import ScreenManager, Screen, NoTransition
 from kivy.uix.textinput import TextInput
 from kivy.uix.image import Image
+from kivy.uix.popup import Popup
 import numpy as np 
 import matplotlib.pyplot as plt
 import time
@@ -17,7 +18,8 @@ import RocketFunctions2
 
 
 # global variable for folder path, make sure there is a \\ at the end of it
-Folder_Path = "C:\\Users\\joesb\\CSVFiles\\"
+Folder_Path = "C:\\Users\\joesb\\RocketCat\\CSVFiles\\"
+Save_Path = "C:\\Users\\joesb\\RocketCat\\Saves\\"
 
 #Configuration Class
 class Config:
@@ -64,6 +66,34 @@ class CSVWriter:
         file_path = Folder_Path + self.input_name + ".csv"
 
         df.to_csv(file_path,index=False)
+
+
+
+class CSVFlowWriter:
+    def __init__(self,flow_properties,input_name):
+        
+        self.flow_properties = flow_properties
+        self.input_name = input_name
+
+    def createfile(self):
+
+        flow_properties = self.flow_properties
+
+        self.mach_num = flow_properties[0,:]
+        self.temperature = flow_properties[1,:]
+        self.pressure = flow_properties[2,:]
+        self.density = flow_properties[3,:]
+        self.velocity = flow_properties[4,:]
+ 
+
+        data = {'Mach Number':self.mach_num,'Temperature':self.temperature,'Pressure':self.pressure,'Density':self.density,'Velocity':self.velocity}
+        df = pd.DataFrame(data)
+
+        #File path
+        file_path = Save_Path + self.input_name + ".csv"
+
+        df.to_csv(file_path,index=False)
+
 
 #configuration manager
 class ConfigManager:
@@ -361,7 +391,8 @@ class ConfigPage(Screen):
         mach_plot_button = Button(text='Display Mach Number Plot',on_press = lambda instance: self.display_mach(x,xthroat,xexit,Din,Dexit,Dthroat,gamma,Mdot,P0,T0,R,Rho0),size_hint=(0.3,0.1),pos_hint={'center_x':0.1,'center_y':0.5})
         self.config_page_layout.add_widget(mach_plot_button)
 
-        flow_properties = self.calculate_flow_properties(x,xthroat,xexit,Din,Dexit,Dthroat,gamma,Mdot,P0,T0,R,Rho0)
+        flow_properties_button = Button(text='Calculate Flow Properties',on_press = lambda instance: self.calculate_flow_properties(x,xthroat,xexit,Din,Dexit,Dthroat,gamma,Mdot,P0,T0,R,Rho0),size_hint=(0.3,0.1),pos_hint={'center_x':0.5,'center_y':0.7})
+        self.config_page_layout.add_widget(flow_properties_button)
 
 
     def display_geo(self,x,xthroat,xexit,Din,Dexit,Dthroat):
@@ -422,6 +453,16 @@ class ConfigPage(Screen):
         print("Pressure: ",pressure)
         print("Density: ",density)
         print("Velocity: ",velocity)
+
+        self.save_flow_properties(flow_properties)
+    
+    def save_flow_properties(self,flow_properties):
+
+        input_name = "Save"
+        CSVFlowWriter(flow_properties,input_name).createfile()
+
+    
+
 
 
     def back_to_notescreen(self,instance):
@@ -588,7 +629,9 @@ class EditScreen(Screen):
 
 #%%
 
-#App Class
+
+
+#App Class - buiilds absolutely fucking everything
 class RocketCat(App):
     def build(self):
 
